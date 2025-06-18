@@ -11,9 +11,19 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+import pytesseract
+from shutil import which
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+TESSERACT_PATH = which('tesseract')
+
+if TESSERACT_PATH:
+    pytesseract.pytesseract.tesseract_cmd = TESSERACT_PATH
+else:
+    # Opcional: puedes lanzar un error o loggear una advertencia si no se encuentra
+    print("Advertencia: El ejecutable de Tesseract no se encontró en el PATH.")
+
 
 
 # Quick-start development settings - unsuitable for production
@@ -25,7 +35,7 @@ SECRET_KEY = 'django-insecure-9uz_r#s4_ofwf7r4)+7!1)b1c3k#l*oz7jz9i3ekyjtb_g+vkt
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["lectororc-production.up.railway.app"]
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition

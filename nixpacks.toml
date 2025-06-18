@@ -1,0 +1,4 @@
+# nixpacks.toml
+[phases.setup]
+#'tesseract5' para instalar el motor de OCR
+nixPkgs = ["tesseract5"]
