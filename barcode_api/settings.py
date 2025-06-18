@@ -52,10 +52,6 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
-CORS_ORIGIN_WHITELIST = [
-    'http://localhost:5173',  # React dev server
-]
-
 
 ROOT_URLCONF = 'barcode_api.urls'
 
