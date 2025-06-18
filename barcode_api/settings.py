@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-9uz_r#s4_ofwf7r4)+7!1)b1c3k#l*oz7jz9i3ekyjtb_g+vkt
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["lectororc-production.up.railway.app"]
 
 
 # Application definition
