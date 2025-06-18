@@ -1,0 +1,1 @@
+web: gunicorn barcode_api.wsgi --log-file -
