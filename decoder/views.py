@@ -9,27 +9,41 @@ from rest_framework.response import Response
 from rest_framework import status
 import re
 
+try:
+    print("Initializing EasyOCR Reader...")
+    # Asegúrate de usar los idiomas que necesitas.
+    READER = easyocr.Reader(['en'], gpu=False) 
+    print("EasyOCR Reader initialized successfully.")
+except Exception as e:
+    # Manejar el caso en que el lector no pueda inicializarse
+    print(f"Error initializing EasyOCR Reader: {e}")
+    READER = None
+
+
 class OcrTextExtractView(APIView):
     """
-    API para recibir imágenes y extraer texto usando EasyOCR.
+    API para recibir imágenes y extraer texto usando una instancia global de EasyOCR.
     """
     parser_classes = [JSONParser, FormParser, MultiPartParser]
 
     def preprocess_image(self, img):
         """
         Preprocesa la imagen para mejorar la precisión del OCR.
-        Convierte a escala de grises y mejora el contraste.
         """
-        # Reducir tamaño de la imagen para mejorar velocidad
-        max_size = (1000, 1000)  # Limitar a 1000x1000 píxeles
+        max_size = (1000, 1000)
         img.thumbnail(max_size, Image.Resampling.LANCZOS)
-
-        # Convertir a escala de grises
         gray_img = img.convert("L")
         return gray_img
 
     def post(self, request):
-        # 1) Obtener la imagen (Base64 o multipart)
+        # Verificar si el lector se inicializó correctamente al arrancar
+        if READER is None:
+            return Response(
+                {"detail": "OCR service is not available"},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE
+            )
+
+        # 1) Obtener la imagen
         image_b64 = request.data.get("image")
         uploaded_file = request.FILES.get("image")
 
@@ -46,7 +60,6 @@ class OcrTextExtractView(APIView):
                 image_bytes = base64.b64decode(image_b64)
             else:
                 image_bytes = uploaded_file.read()
-
             img = Image.open(BytesIO(image_bytes))
         except Exception:
             return Response(
@@ -56,20 +69,14 @@ class OcrTextExtractView(APIView):
 
         # 2) Preprocesar la imagen
         processed_img = self.preprocess_image(img)
-
-        # Convertir la imagen PIL a un array de Numpy
         processed_img_np = np.array(processed_img)
 
-        # 3) Crear el lector OCR
-        reader = easyocr.Reader(['en'], gpu=False)  # Usar el idioma inglés, puedes añadir más idiomas si es necesario
+        # 3) Extraer el texto con OCR usando la instancia GLOBAL
+        # Ya no se crea un nuevo lector, solo se usa el que ya existe.
+        result = READER.readtext(processed_img_np)
 
-        # 4) Extraer el texto con OCR
-        result = reader.readtext(processed_img_np)  # Usar el array de Numpy
-
-        # 5) Extraer solo el texto, limpiar el resultado
+        # 4) Extraer y limpiar el texto
         extracted_text = " ".join([text[1] for text in result])
-        
-        # 6) Limpiar el texto: convertir a mayúsculas, eliminar caracteres especiales y espacios
         clean_text = re.sub(r"[^A-Za-z0-9]", "", extracted_text).upper()
         print(clean_text)
 
